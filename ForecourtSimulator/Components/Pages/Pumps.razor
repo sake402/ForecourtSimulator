@@ -1,0 +1,78 @@
+﻿@inherits BaseComponent
+@using System.IO.Ports
+@using LivingThing.Core.Frameworks.Common.String
+
+<div class="grid colm-3 gap-1">
+    <LivingThing.Core.Frameworks.Client.Components.Themes.Themable Context="theme">
+        @{
+            int _i = 0;
+        }
+        @foreach (var pump in Service.PumpSimulator.Pumps)
+        {
+            var i = _i;
+            <div class="bg-card pd-5 pos-rel">
+                <div class="pos-abs t-0 l-0 bg-chart@((pump.ProbeCount % 12)+1)-01 pd-2 fsz-11 corner-br-2">Address<br /> <b>@pump.Address</b></div>
+                <EditForm Model="this" Class="@($"pos-abs t-0 r-0 bg-primary-01 fsz-11 corner-br-2")">
+                    <InputEditor Type="InputType.Select" @bind-Value="pump.ConnectedTank" Options="@(Service.TankSimulator.Tanks.GetSelectOptionsPager()!)" PlaceHolder="Tank"></InputEditor>
+                </EditForm>
+                <div class="bg-gray flex pdx pdy-2">
+                    <span class="mgy-a fw-bold">TOTAL VOLUME</span>
+                    <div class="mgl-a font-sevenseg fsz-35 cl-error">@pump.TotalVolumeSold.ToString("#,##0.00")</div>
+                </div>
+                <div class="bg-gray flex  pdx pdy-2 mgt">
+                    <span class="mgy-a fw-bold">TOTAL AMOUNT</span>
+                    <div class="mgl-a font-sevenseg fsz-35 cl-error">@pump.TotalAmountSold.ToString("#,##0.00")</div>
+                </div>
+
+                <div class="bg-gray flex pdx pdy-2 mgt-10">
+                    <span class="mgy-a fw-bold">
+                        AMOUNT
+                    </span>
+                    @if (pump.PresetAmount > 0)
+                    {
+                        <span class="mgy-a mgx-2">@@</span>
+                        <span class="mgy-a font-sevenseg cl-error fsz-20">@pump.PresetAmount.ToString("#,##0.##")</span>
+                    }
+                    <div class="mgl-a font-sevenseg fsz-35 cl-error">@pump.AmountSold.ToString("#,##0.00")</div>
+                </div>
+                <div class="bg-gray flex pdx pdy-2 mgt">
+                    <span class="mgy-a fw-bold">
+                        VOLUME
+                    </span>
+                    @if (pump.PresetVolume > 0)
+                    {
+                        <span class="mgy-a mgx-2">@@</span>
+                        <span class="mgy-a font-sevenseg cl-error fsz-20">@pump.PresetVolume.ToString("#,##0.##")</span>
+                    }
+                    <div class="mgl-a font-sevenseg fsz-35 cl-error">@pump.VolumeSold.ToString("#,##0.00")</div>
+                </div>
+                <div class="bg-gray flex pdx pdy-2 mgt">
+                    <span class="mgy-a fw-bold">PRICE</span>
+                    <div class="mgl-a font-sevenseg fsz-35 cl-error">@pump.PresetPrice.ToString("#,##0.00")</div>
+                </div>
+                <div class=" pdx pdy-2 bg-chart@(((int)pump.Status)+1)-03 text-center fsz-20 mgt">
+                    @pump.Status.ToString().CamelCaseToTitle().ToUpper()
+                </div>
+                <EditForm Model="pump" class="flex flex-end mgt">
+                    <div class="stack mgb-a">
+                        <input type="checkbox" id="autosell_@pump.Address" name="autosell_@pump.Address" @bind-value="Service.PumpSimulator.AutoSell[i]" class="mgx-a" />
+                        <label for="autosell_@pump.Address" class="fsz-11 mgx-a text-center clickable">AutoSale</label>
+                    </div>
+                    <div class="stack mgb-a mgl-2">
+                        <input type="checkbox" id="online_@pump.Address" name="online_@pump.Address" @bind-value="pump.Online" class="mgx-a" />
+                        <label for="online_@pump.Address" class="fsz-11 mgx-a text-center clickable">Online</label>
+                    </div>
+                    <button class="fsz-16 pd-2 mdi mdi-power@(pump.PauseSale ? "" : "-off") @(pump.PauseSale?"":"bg-success") nobreak mgl"
+                            @onclick="pump.ToggleFlow"
+                            title="@(pump.PauseSale ? "START FLOW" : "STOP FLOW")">
+                    </button>
+                    <button class="fsz-16 pd-2 mdi mdi-arrow-@(pump.Status == PumpStatus.Idle || pump.Status == PumpStatus.NozzleDown ? "up" : "down") @(pump.Status == PumpStatus.Idle||pump.Status == PumpStatus.NozzleDown?"":"bg-success") nobreak mgl"
+                            @onclick="pump.ToggleNozzle"
+                            title="@(pump.Status == PumpStatus.Idle || pump.Status == PumpStatus.NozzleDown ? "PICK NOZZLE" : "DROP NOZZLE")">
+                    </button>
+                </EditForm>
+            </div>
+            _i++;
+        }
+    </LivingThing.Core.Frameworks.Client.Components.Themes.Themable>
+</div>

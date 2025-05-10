@@ -1,0 +1,60 @@
+﻿@inherits BaseComponent
+
+@using LivingThing.Core.Frameworks.Common.String
+
+<div class="grid colm-2 gap-2">
+    <LivingThing.Core.Frameworks.Client.Components.Themes.Themable Context="theme">
+        @foreach (var _tank in Service.TankSimulator.Tanks)
+        {
+            var tank = _tank;
+            <div class="stack bg-card pd pos-rel">
+                <div class="pos-abs t-0 l-0 bg-chart@((tank.ProbeCount % 12)+1)-01 pd-2 fsz-11 corner-br-2">Address<br /> <b>@tank.Address</b></div>
+                <div class="pos-abs t-0 r-0 bg-primary-01 pd-2 fsz-11 corner-bl-2 text-right">Height<br /> <b>@(tank.Height)mm</b></div>
+                <div class="pos-abs b-0 l-0 bg-primary-01 pd-2 fsz-11 corner-tr-2">
+                    Product
+                    <br />
+                    <b>@tank.ProductHeight.ToString("#,##0.##")mm @* (@tank.ProductHeightPercentage%) *@</b>
+                    <br />
+                    <b>@tank.ProductVolume.ToString("#,##0.##")L</b>
+                </div>
+                <div class="pos-abs b-0 r-0 bg-primary-01 pd-2 fsz-11 corner-tl-2 text-right">
+                    Water
+                    <br />
+                    <b>@tank.WaterHeight.ToString("#,##0.##")mm @* (@tank.WaterHeightPercentage%) *@</b>
+                    <br />
+                    <b>@tank.WaterVolume.ToString("#,##0.##")L</b>
+                </div>
+
+                <div class="wx-15 hx-15 bg-card round pos-rel sd mgx-a">
+                    <div class="wx-15 hx-15 bg-secondary round flex pos-abs t-0 l-0 r-0 b-0"
+                         style="clip-path: polygon(0% @(100-tank.ProductHeightPercentage)%, 0% 100%, 100% 100%, 100% @(100-tank.ProductHeightPercentage)%);">
+                    </div>
+                    <div class="wx-15 hx-15 bg-gray-04 round flex pos-abs t-0 l-0 r-0 b-0"
+                         style="clip-path: polygon(0% @(100-tank.WaterHeightPercentage)%, 0% 100%, 100% 100%, 100% @(100-tank.WaterHeightPercentage)%);">
+                    </div>
+                    <div class="bg-primary bd corner flex pos-abs hx-01 mgt--3" style="top:0;left:35%;right:35%"></div>
+                    <div class="pos-abs bg-primary bd" style="left:47%;right:47%;top:-10px;bottom:0">
+                    </div>
+                    <div class="pos-abs" style="left:45%;right:45%;top:0;bottom:0">
+                        <div class="hf wf pos-rel" @ref="probes[tank]">
+                            <div class="bg-error corner pos-abs bd wf clickable" draggable="true" @ref="waterFloats[tank]" style="height:5px;top:@(100-tank.WaterHeightPercentage)%" title="Water: @tank.WaterHeight.ToString("0.##")mm, @tank.WaterHeightPercentage%"></div>
+                            <div class="bg-warning corner pos-abs bd wf clickable" draggable="true" @ref="productFloats[tank]" style="height:5px;top:@(100-tank.ProductHeightPercentage)%" title="Product: @tank.ProductHeight.ToString("0.##")mm, @tank.ProductHeightPercentage%"></div>
+                        </div>
+                    </div>
+                    @* <div class="pos-abs t-0 b-0 l-0 r-0 flex">
+                            <div class="mg-a text-center pdx">
+                                <h2>@(ProductVolume)L DIESEL</h2>
+                                <h3>>@(WaterVolume)L WATER</h3>
+                            </div>
+                        </div> *@
+                </div>
+                @* <div class="bg-primary-01 mgt pd text-center fw-bold fsz-small">
+                    <span class="nowrap">AD: @tank.Address,</span>
+                    <span class="nowrap">H: @tank.Height.ToString("0")mm,</span>
+                    <span class="nowrap">PH: @tank.ProductHeight.ToString("0")mm (@tank.ProductHeightPercentage%),</span>
+                    <span class="nowrap">WH: @tank.WaterHeight.ToString("0")mm (@tank.WaterHeightPercentage%)</span>
+                </div> *@
+            </div>
+        }
+    </LivingThing.Core.Frameworks.Client.Components.Themes.Themable>
+</div>

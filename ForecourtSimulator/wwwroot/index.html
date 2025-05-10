@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" class="ltroot">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>ForecourtSimulator.Blazor</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="ForecourtSimulator.Blazor.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="_content/LivingThing.Core.Frameworks.Client.Blazor/LivingThing.Core.Frameworks.Client.css" />
+    <link rel="stylesheet" href="_content/LivingThing.Core.Frameworks.Client.Blazor/mdi/css/materialdesignicons.css" />
+    <script>
+        //https://gist.github.com/ivanjx/b026ba331796e20a717778ae56760e3c
+        (function (opts) {
+    let isDragging = false;
+    let draggedElement = null;
+    let startPosition = { x: 0, y: 0 };
+    let currentOverElement = null;
+    let ghostElement = null;
+
+    /**
+     * Searches for the nearest ancestor of the provided element that has the draggable attribute set to true.
+     * @param {HTMLElement} element - The starting element to begin the search from.
+     * @returns {HTMLElement|null} - The draggable ancestor if found, otherwise null.
+     */
+    function findDraggableAncestor(element) {
+        while (element && element !== document.body) {
+            if (element.getAttribute('draggable') === 'true') {
+                return element;
+            }
+            element = element.parentElement;
+        }
+        return null;
+    }
+
+    /**
+     * Mock DataTransfer class mimicking the DataTransfer object available in drag & drop operations.
+     */
+    function MockDataTransfer() {
+        this.dropEffect = 'move';
+        this.effectAllowed = 'all';
+        this.files = [];
+        this.items = [];
+        this.types = [];
+        this.setData = function (format, data) {
+            this.items.push({ format, data });
+            this.types.push(format);
+        };
+        this.getData = function (format) {
+            let item = this.items.find(i => i.format === format);
+            return item ? item.data : '';
+        };
+        this.clearData = function (format) {
+            this.items = this.items.filter(i => i.format !== format);
+            this.types = this.types.filter(t => t !== format);
+        };
+    }
+
+    /**
+     * Creates a mock drag event.
+     * @param {string} type - The type of the drag event (e.g., "dragstart", "dragend", etc.)
+     * @param {Object} options - Options to be passed to the event.
+     * @returns {Event} - A mocked drag event.
+     */
+    function createMockDragEvent(type, options) {
+        let event = new Event(type, options);
+        event.clientX = options.clientX;
+        event.clientY = options.clientY;
+        event.dataTransfer = new MockDataTransfer();
+        return event;
+    }
+
+    if (opts.setPointerCursor) {
+        const styleTag = document.createElement('style');
+        styleTag.textContent = '[draggable="true"] { cursor: pointer; }';
+
+        // Insert the style tag as the first child of the head element
+        const head = document.head;
+        if (head.children.length > 0) {
+            head.insertBefore(styleTag, head.children[0]);
+        } else {
+            head.appendChild(styleTag);
+        }
+    }
+
+    document.addEventListener('mousedown', function (e) {
+        // Only proceed if the left mouse button is clicked
+        if (e.button !== 0) return;
+
+        let draggableElement = findDraggableAncestor(e.target);
+
+        if (!draggableElement) return;
+
+        // Override the existing functionality
+        draggableElement.setAttribute('draggable', 'false');
+        draggableElement.pointerEvents = "none";
+
+        // Create a "ghost" clone for visual dragging
+        ghostElement = draggableElement.cloneNode(true);
+        applyStylesToGhost(draggableElement, ghostElement);
+
+        // Update state for dragging
+        isDragging = true;
+        draggedElement = draggableElement;
+        startPosition.x = e.clientX;
+        startPosition.y = e.clientY;
+
+        // Fire dragstart event
+        draggedElement.dispatchEvent(createMockDragEvent('dragstart', {
+            bubbles: true,
+            cancelable: true,
+            clientX: e.clientX,
+            clientY: e.clientY
+        }));
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (!isDragging || !ghostElement) return;
+
+        draggedElement.dispatchEvent(createMockDragEvent('drag', {
+            bubbles: true,
+            cancelable: true,
+            clientX: e.clientX,
+            clientY: e.clientY
+        }));
+
+        // Update ghost position
+        let x = e.clientX - startPosition.x;
+        let y = e.clientY - startPosition.y;
+        ghostElement.style.transform = `translate(${x}px, ${y}px)`;
+
+        // Check for drag over target
+        ghostElement.style.display = 'none';
+        let elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+        ghostElement.style.display = '';
+
+        if (elementBelow && elementBelow !== currentOverElement) {
+            elementBelow.dispatchEvent(createMockDragEvent('dragover', {
+                bubbles: true,
+                cancelable: true,
+                clientX: e.clientX,
+                clientY: e.clientY
+            }));
+            currentOverElement = elementBelow;
+        }
+    });
+
+    document.addEventListener('mouseup', function (e) {
+        //Only drop and dragend if dragging the event was triggerd with button 0 (left-click)
+        if (!isDragging || e.button !== 0) return;
+
+        // Fire drop event if we have a target
+        if (currentOverElement) {
+            currentOverElement.dispatchEvent(createMockDragEvent('drop', {
+                bubbles: true,
+                cancelable: true
+            }));
+        }
+
+        // Fire dragend event
+        draggedElement.dispatchEvent(createMockDragEvent('dragend', {
+            bubbles: true,
+            cancelable: true
+        }));
+
+        // Cleanup
+        isDragging = false;
+        draggedElement.setAttribute('draggable', 'true');
+        draggedElement.style.pointerEvents = "";
+        document.body.removeChild(ghostElement);
+        ghostElement = null;
+        draggedElement = null;
+        currentOverElement = null;
+    });
+
+    /**
+     * Applies computed styles from the original element to the ghost element.
+     * @param {HTMLElement} original - The original draggable element.
+     * @param {HTMLElement} ghost - The cloned "ghost" element.
+     */
+    function applyStylesToGhost(original, ghost) {
+        let computedStyles = window.getComputedStyle(original);
+        for (let prop of computedStyles) {
+            ghost.style[prop] = computedStyles[prop];
+        }
+
+        // Positioning and z-index
+        let rect = original.getBoundingClientRect();
+        ghost.style.position = 'fixed';
+        ghost.style.left = `${rect.left}px`;
+        ghost.style.top = `${rect.top}px`;
+        ghost.style.zIndex = '1000';
+        ghost.style.opacity = '0.7';
+        ghost.style.pointerEvents = 'none';
+
+        document.body.appendChild(ghost);
+    }
+
+})({ setPointerCursor: true });
+    </script>
+    <script static>function Define(name, f) { window.lt = window.lt || {}; window.lt[name] = f; }</script>
+    <script src="_content/LivingThing.Core.Frameworks.Client.Blazor/LivingThing.Core.Frameworks.Client.js"></script>
+</head>
+
+<body>
+
+    <div class="status-bar-safe-area"></div>
+
+    <div id="app" class="hv-10 stack">
+        <img src="nozzle.png" class="mg-a mawx-2" />
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+
+</body>
+
+</html>
