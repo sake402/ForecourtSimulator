@@ -73,20 +73,21 @@ public class TokheimPumpSimulator : PumpSimulator
 
     void WriteStatus(int address)
     {
-        int stat = GetPumpStatus(address) switch
-        {
-            PumpStatus.Idle => 0x2f,
-            PumpStatus.NozzleDown => 0x20,
-            PumpStatus.NozzleUp => 0xa0,
-            PumpStatus.NozzleUpAuthorized => 0xd0,
-            PumpStatus.Filling => 0xf0,
-            PumpStatus.FilledLimit => 0x98,
-            _ => 0
-        };
-        WriteSingle(stat);
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         if (pump != null)
         {
+            int stat = GetPumpStatus(address) switch
+            {
+                PumpStatus.Idle => 0x2f,
+                PumpStatus.NozzleDown => 0x20,
+                PumpStatus.NozzleUp => 0xa0,
+                PumpStatus.NozzleUpAuthorized => 0xd0,
+                PumpStatus.NozzleDownAuthorized => 0xd0,
+                PumpStatus.Filling => 0xf0,
+                PumpStatus.FilledLimit => 0x98,
+                _ => 0
+            };
+            WriteSingle(stat);
             pump.ProbeCount++;
             pump.StateChanged();
         }
@@ -161,7 +162,7 @@ public class TokheimPumpSimulator : PumpSimulator
                                 {
                                     WriteBCD((int)(GetPrice(address) * Math.Pow(10, RateDP)), 2, true);
                                     WriteBCD((int)(GetAmountSold(address) * Math.Pow(10, AmountDP)), 3, true);
-                                    WriteBCD((int)(GetVolumeSold(address) * Math.Pow(10, VolumeDP)), 4, true);
+                                    WriteBCD((int)(GetVolumeSold(address) * Math.Pow(10, VolumeDP)), 3, true);
                                     WriteStatus(address);
                                     SerialPort.Flush();
                                 }

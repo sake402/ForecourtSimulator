@@ -22,7 +22,7 @@ public static class MauiProgram
 
         builder.Services.AddMauiBlazorWebView();
         builder.Services.AddScoped<IOPort>();
-        builder.Services.AddScoped<SimulatorService>();
+        builder.Services.AddScoped<SimulatorWorkBenchService>();
 
         var startup = new StartupOptions
         {

@@ -4,14 +4,16 @@ using System.IO.Ports;
 
 namespace ForecourtSimulator.Services
 {
-    public class IOPort : ISerialPortInterface
+    public class IOPort : ISerialPortInterface, IDisposable
     {
+        SimulatorWorkBenchService _service;
         SerialPort? port;
         public SharedSerialPort PumpPort { get; }
         public SharedSerialPort TankPort { get; }
 
-        public IOPort()
+        public IOPort(SimulatorWorkBenchService service)
         {
+            this._service = service;
             PortNames = SerialPort.GetPortNames();
             PortName = PortNames.FirstOrDefault();
             PumpPort = new SharedSerialPort(this);
@@ -19,7 +21,16 @@ namespace ForecourtSimulator.Services
         }
 
         public IEnumerable<string> PortNames { get; private set; } = Enumerable.Empty<string>();
-        public string? PortName { get; set; }
+        public string? PortName
+        {
+            get => _service.State.Port;
+            set => _service.State.Port = value;
+        }
+        public void Write(byte[] value)
+        {
+            if (port != null)
+                port.Write(value, 0, value.Length);
+        }
 
         public void Write(int value)
         {
@@ -76,7 +87,7 @@ namespace ForecourtSimulator.Services
             else if (PortName != null)
             {
                 port?.Close();
-                port = new SerialPort(PortName, 9600, Parity.None, 8, StopBits.One);
+                port = new SerialPort(PortName, _service.State.BaudRate, Parity.None, 8, StopBits.One);
                 port.DataReceived += Port_DataReceived;
                 port.Open();
             }
@@ -98,6 +109,11 @@ namespace ForecourtSimulator.Services
                     }
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            port?.Close();
         }
     }
 }

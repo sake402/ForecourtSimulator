@@ -4,37 +4,58 @@ using LivingThing.Core.Frameworks.Common.Logging;
 
 namespace ForecourtSimulator.Services
 {
-    public class SimulatorService : IPumpStorage, ITankStorage
+    public class SimulatorState
     {
-        public SimulatorService(IClientUnitOfWork unitOfWork, IOPort port)
+        public string? Port { get; set; }
+        public int BaudRate { get; set; } = 9600;
+        public string? Protocol { get; set; } = "TOKHEIM";
+        public Dictionary<int, PumpState>? PumpStates { get; set; }
+        public Dictionary<int, TankState>? TankStates { get; set; }
+    }
+    public class SimulatorWorkBenchService : IPumpStorage, ITankStorage, IDisposable
+    {
+        public Dictionary<string, PumpSimulator> PumpSimulators { get; }
+        public SimulatorWorkBenchService(IClientUnitOfWork unitOfWork)
         {
             UnitOfWork = unitOfWork;
-            Port = port;
-            PumpSimulator = new TokheimPumpSimulator(Port.PumpPort, this, 2);
+            Port = new IOPort(this);
+            PumpSimulators = new Dictionary<string, PumpSimulator>
+            {
+                ["GO"] = new GOPumpSimulator(Port.PumpPort, this),
+                ["TOKHEIM"] = new TokheimPumpSimulator(Port.PumpPort, this, 2)
+            };
             TankSimulator = new StartItalianaATGSimulator(Port.TankPort, this, 2);
         }
 
         IClientUnitOfWork UnitOfWork { get; }
         public IOPort Port { get; }
-        public PumpSimulator PumpSimulator { get; }
+        public PumpSimulator PumpSimulator => PumpSimulators.GetValueOrDefault(State.Protocol ?? "") ?? PumpSimulators["TOKHEIM"];
         public TankATGSimulator TankSimulator { get; }
+        public SimulatorState State { get; private set; } = new SimulatorState();
 
-        async Task<PumpState> IPumpStorage.Load(int address)
+        public async Task SaveState()
         {
-            var state = await UnitOfWork.Storage.GetItem<PumpState>("PS" + address);
+            await UnitOfWork.Storage.SetItem("State", State);
+        }
+        Task<PumpState> IPumpStorage.Load(int address)
+        {
+            var state = State.PumpStates?.GetValueOrDefault(address) ?? default!;
             if (state.Price == 0)
                 state.Price = 402;
-            return state;
+            return Task.FromResult(state);
         }
 
         async Task IPumpStorage.Store(int address, double price, double volume, double amount)
         {
-            await UnitOfWork.Storage.SetItem("PS" + address, new PumpState
+            var ps = new PumpState
             {
                 Price = price,
                 Volume = volume,
                 Amount = amount
-            });
+            };
+            State.PumpStates ??= new();
+            State.PumpStates[address] = ps;
+            await SaveState();
         }
 
         public async Task ResetPumpStore()
@@ -43,24 +64,28 @@ namespace ForecourtSimulator.Services
             {
                 pump.TotalAmountSold = 0;
                 pump.TotalVolumeSold = 0;
-                await UnitOfWork.Storage.SetItem("PS" + pump.Address, default(PumpState));
             }
+            State.PumpStates?.Clear();
+            await SaveState();
         }
 
-        async Task<TankState> ITankStorage.Load(int address)
+        Task<TankState> ITankStorage.Load(int address)
         {
-            var state = await UnitOfWork.Storage.GetItem<TankState>("TS" + address);
-            return state;
+            var state = State.TankStates?.GetValueOrDefault(address) ?? default!;
+            return Task.FromResult(state);
         }
 
         async Task ITankStorage.Store(int address, double productHeight, double waterHeight, double temperature)
         {
-            await UnitOfWork.Storage.SetItem("TS" + address, new TankState
+            var ts = new TankState
             {
                 ProductHeight = productHeight,
                 WaterHeight = waterHeight,
                 Temperature = temperature
-            });
+            };
+            State.TankStates ??= new();
+            State.TankStates[address] = ts;
+            await SaveState();
         }
 
         public async Task ResetTankStore()
@@ -70,8 +95,9 @@ namespace ForecourtSimulator.Services
                 tank.ProductHeight = 0;
                 tank.WaterHeight = 0;
                 tank.Temperature = 0;
-                await UnitOfWork.Storage.SetItem("TS" + tank.Address, default(TankState));
             }
+            State.TankStates?.Clear();
+            await SaveState();
         }
 
         CancellationTokenSource? cts;
@@ -81,7 +107,10 @@ namespace ForecourtSimulator.Services
             if (!inited)
             {
                 inited = true;
-                await PumpSimulator.Initialize();
+                var state = await UnitOfWork.Storage.GetItem<SimulatorState>("State") ?? State;
+                State = state;
+                foreach (var p in PumpSimulators)
+                    await p.Value.Initialize();
                 await TankSimulator.Initialize();
                 _ = Task.Run(async () =>
                 {
@@ -110,5 +139,9 @@ namespace ForecourtSimulator.Services
             }
         }
 
+        public void Dispose()
+        {
+            Port.Dispose();
+        }
     }
 }

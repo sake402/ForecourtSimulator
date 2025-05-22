@@ -6,6 +6,7 @@ public class Tank
 {
     public TankATGSimulator Simulator { get; }
     public int Address { get; }
+    public bool Enable { get; set; } = true;
     public double Height { get; }
     public (double, double)[] CaliberationTable { get; }
     public Tank(TankATGSimulator simulator, int address, double height)

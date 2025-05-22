@@ -13,7 +13,7 @@ namespace ForecourtSimulator.Components.Pages
 {
     public partial class Tanks : BaseComponent, IDisposable, IManagedBaseComponent, IDraggableComponent
     {
-        [ServiceInject] public SimulatorService Service { get; set; } = default!;
+        [ServiceInject] public SimulatorWorkBenchService Service { get; set; } = default!;
         [ServiceInject] public IJavaScriptRunner JavaScript { get; set; } = default!;
 
         protected override async Task OnInitializedAsync()

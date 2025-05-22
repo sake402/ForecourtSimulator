@@ -60,7 +60,11 @@ namespace ForecourtSimulator.Services
             }
             return false;
         }
-
+        
+        public void Write(byte[] value)
+        {
+            originalPort.Write(value);
+        }
         public void Write(int value)
         {
             originalPort.Write(value);

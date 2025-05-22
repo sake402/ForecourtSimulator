@@ -8,7 +8,12 @@
         {
             var tank = _tank;
             <div class="stack bg-card pd pos-rel">
-                <div class="pos-abs t-0 l-0 bg-chart@((tank.ProbeCount % 12)+1)-01 pd-2 fsz-11 corner-br-2">Address<br /> <b>@tank.Address</b></div>
+                <div class="pos-abs t-0 l-0 bg-chart@((tank.ProbeCount % 12)+1)-01 pd-2 fsz-11 corner-br-2">
+                    <input type="checkbox" id="enable_@tank.Address" name="enable_@tank.Address" checked="@tank.Enable" @bind-value="tank.Enable" />
+                    Address
+                    <br />
+                    <b>@tank.Address</b>
+                </div>
                 <div class="pos-abs t-0 r-0 bg-primary-01 pd-2 fsz-11 corner-bl-2 text-right">Height<br /> <b>@(tank.Height)mm</b></div>
                 <div class="pos-abs b-0 l-0 bg-primary-01 pd-2 fsz-11 corner-tr-2">
                     Product

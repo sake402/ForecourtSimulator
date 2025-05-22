@@ -32,7 +32,7 @@ public abstract class PumpSimulator
     }
     public PumpStatus GetPumpStatus(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         if (pump != null)
         {
             return pump.Status;
@@ -42,7 +42,7 @@ public abstract class PumpSimulator
 
     protected void SetPrice(int address, double price)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         if (pump != null)
         {
             pump.PresetPrice = price;
@@ -52,13 +52,13 @@ public abstract class PumpSimulator
 
     protected double GetPrice(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         return pump?.PresetPrice ?? 0;
     }
 
     protected void StartSaleByVolume(int address, double price, double volume)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         if (pump?.Status == PumpStatus.NozzleUp)
         {
             pump.PresetPrice = price;
@@ -70,7 +70,7 @@ public abstract class PumpSimulator
     }
     protected void StartSaleByAmount(int address, double price, double amount)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         if (pump?.Status == PumpStatus.NozzleUp)
         {
             pump.PresetPrice = price;
@@ -82,7 +82,7 @@ public abstract class PumpSimulator
     }
     protected void PauseSale(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         if (pump != null)
         {
             pump.PauseSale = true;
@@ -91,7 +91,7 @@ public abstract class PumpSimulator
     }
     protected void ResumeSale(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         if (pump != null)
         {
             pump.PauseSale = false;
@@ -101,25 +101,25 @@ public abstract class PumpSimulator
 
     public double GetVolumeSold(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         return pump?.VolumeSold ?? 0;
     }
 
     public double GetAmountSold(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         return pump?.AmountSold ?? 0;
     }
 
     public double GetTotalVolume(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         return pump?.TotalVolumeSold ?? 0;
     }
 
     public double GetTotalAmount(int address)
     {
-        var pump = Pumps.SingleOrDefault(p => p.Address == address);
+        var pump = Pumps.SingleOrDefault(p => p.Enable && p.Address == address);
         return pump?.TotalAmountSold ?? 0;
     }
 

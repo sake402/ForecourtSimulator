@@ -1,38 +1,61 @@
 ﻿@inherits BaseComponent
 @using System.IO.Ports
+@using LivingThing.Core.Frameworks.Common.Data
 @using LivingThing.Core.Frameworks.Common.String
 
-<div class="pd-3 bg-card flex">
-    <select class="bd pd-2" @bind-value="Service.Port.PortName" @bind-value:event="onchange">
+<EditForm Model="this" class="pd-3 bg-card flex">
+    <select class="mgl bd pd-2" @bind-value="Service.State.Protocol"
+            @bind-value:after="ServiceSaveState"
+            @bind-value:event="onchange">
+        @foreach (var sim in Service.PumpSimulators)
+        {
+            <option value="@sim.Key">@sim.Key</option>
+        }
+    </select>
+    <select class="mgl bd pd-2" @bind-value="Service.State.Port"
+            @bind-value:after="ServiceSaveState"
+            @bind-value:event="onchange">
         @foreach (var port in Service.Port.PortNames)
         {
-                <option value="@port">@port</option>
+            <option value="@port">@port</option>
+        }
+    </select>
+    <select class="mgl bd pd-2" @bind-value="Service.State.BaudRate"
+            @bind-value:after="ServiceSaveState"
+            @bind-value:event="onchange">
+        @{
+            int baud = 300;
+        }
+        @while (baud < 1000000)
+        {
+            <option value="@baud">@baud</option>
+            baud *= 2;
         }
     </select>
     <button class="bg-primary mgl pd-2" @onclick="Service.Port.ToggleConnect">@(Service.Port.IsConnected ? "Disconnect" : "Connect")</button>
     <div class="fill"></div>
     <button class="bg-error mgl pd-2" @onclick="ResetPumpStore">Reset Pumps</button>
     <button class="bg-error mgl pd-2" @onclick="ResetTankStore">Reset Tanks</button>
-</div>
+</EditForm>
 
 @if (!loaded)
 {
-        <Loading></Loading>
+    <LivingThing.Core.Frameworks.Client.Components.Loading.Loading></LivingThing.Core.Frameworks.Client.Components.Loading.Loading>
 }
 else
 {
-        <div class="pd">
-            <div class="container">        
-                <div class="row responsive">
-                    <div class="col-7 miwx-6">
-                        <Pumps @ref="pumps"></Pumps>
-                    </div>
-                    <div class="col-3 miwx-2">
-                        <Tanks @ref="tanks"></Tanks>
-                    </div>
+    <div class="pd">
+        <div class="container">
+            <div class="row responsive">
+                <div class="col-7 miwx-6">
+                    <Pumps @ref="pumps"></Pumps>
+                </div>
+                <div class="col-3 miwx-2">
+                    <Tanks @ref="tanks"></Tanks>
                 </div>
             </div>
         </div>
+    </div>
 }
 
-    <LivingThing.Core.Frameworks.Client.Components.Utility.StaticComponents></LivingThing.Core.Frameworks.Client.Components.Utility.StaticComponents>
+<LivingThing.Core.Frameworks.Client.Components.Utility.StaticComponents></LivingThing.Core.Frameworks.Client.Components.Utility.StaticComponents>

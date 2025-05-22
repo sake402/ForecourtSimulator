@@ -12,6 +12,7 @@ public class Pump
 
     public int ProbeCount { get; set; }
     public bool Online { get; set; }
+    public bool Enable { get; set; } = true;
     public bool PauseSale { get; set; }
     public PumpStatus Status { get; set; }
     public double PresetPrice { get; set; }
@@ -53,7 +54,7 @@ public class Pump
         PresetAmount = 0;
         PresetVolume = 0;
         await Simulator.PumpStore.Store(Address, PresetPrice, TotalVolumeSold, TotalAmountSold);
-        var log = $"{DateTime.UtcNow} | {VolumeSold,10:#,##0.##}L | ₦{AmountSold,-10:#,##0.##} | ₦{PresetPrice,-10:#,##0.##} | {totalVolumeBefore,10:#,##0.##}L => {TotalVolumeSold,10:#,##0.##}L | ₦{totalAmountBefore,-10:#,##0.##} => ₦{TotalAmountSold,-10:#,##0.##}{(ConnectedTank != null ? $" | T{ConnectedTank.Address}: {tankVolume.originalVolume,10:#,##0.##}L => {tankVolume.newVolume,10:#,##0.##}L" : "")}\r\n";
+        var log = $"{DateTime.Now} | {VolumeSold,6:#,##0.##}L | ₦{AmountSold,-10:#,##0.##} | ₦{PresetPrice,-6:#,##0.##} | {totalVolumeBefore,10:#,##0.##}L => {TotalVolumeSold,10:#,##0.##}L | ₦{totalAmountBefore,-15:#,##0.##} => ₦{TotalAmountSold,-15:#,##0.##}{(ConnectedTank != null ? $" | T{ConnectedTank.Address}: {tankVolume.originalVolume,8:#,##0.##}L => {tankVolume.newVolume,8:#,##0.##}L" : "")}\r\n";
         var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"salesLog{Address}.txt");
         if (!File.Exists(logPath))
         {

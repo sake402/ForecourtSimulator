@@ -8,13 +8,16 @@ namespace ForecourtSimulator.Components.Pages
 {
     public partial class Pumps : BaseComponent, IDisposable, IManagedBaseComponent
     {
-        [ServiceInject] public SimulatorService Service { get; set; } = default!;
+        [ServiceInject] public SimulatorWorkBenchService Service { get; set; } = default!;
 
         protected override async Task OnInitializedAsync()
         {
-            foreach (var pump in Service.PumpSimulator.Pumps)
+            foreach (var simulator in Service.PumpSimulators)
             {
-                pump.OnStateChanged += Pump_OnStateChanged;
+                foreach (var pump in simulator.Value.Pumps)
+                {
+                    pump.OnStateChanged += Pump_OnStateChanged;
+                }
             }
             await base.OnInitializedAsync();
         }
@@ -26,9 +29,12 @@ namespace ForecourtSimulator.Components.Pages
 
         public override void Dispose()
         {
-            foreach (var pump in Service.PumpSimulator.Pumps)
+            foreach (var simulator in Service.PumpSimulators)
             {
-                pump.OnStateChanged -= Pump_OnStateChanged;
+                foreach (var pump in simulator.Value.Pumps)
+                {
+                    pump.OnStateChanged -= Pump_OnStateChanged;
+                }
             }
             base.Dispose();
         }

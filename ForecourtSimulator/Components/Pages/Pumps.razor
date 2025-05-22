@@ -11,7 +11,12 @@
         {
             var i = _i;
             <div class="bg-card pd-5 pos-rel">
-                <div class="pos-abs t-0 l-0 bg-chart@((pump.ProbeCount % 12)+1)-01 pd-2 fsz-11 corner-br-2">Address<br /> <b>@pump.Address</b></div>
+                <div class="pos-abs t-0 l-0 bg-chart@((pump.ProbeCount % 12)+1)-01 pd-2 fsz-11 corner-br-2">
+                    <input type="checkbox" id="enable_@pump.Address" name="enable_@pump.Address" checked="@pump.Enable" @bind-value="pump.Enable" />
+                    Address
+                    <br /> 
+                    <b>@pump.Address</b>
+                </div>
                 <EditForm Model="this" Class="@($"pos-abs t-0 r-0 bg-primary-01 fsz-11 corner-br-2")">
                     <InputEditor Type="InputType.Select" @bind-Value="pump.ConnectedTank" Options="@(Service.TankSimulator.Tanks.GetSelectOptionsPager()!)" PlaceHolder="Tank"></InputEditor>
                 </EditForm>

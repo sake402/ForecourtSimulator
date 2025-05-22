@@ -37,9 +37,9 @@ public class StartItalianaATGSimulator : TankATGSimulator
                     {
                         var iadd = int.Parse(add);
                         var tank = Tanks.FirstOrDefault(t => t.Address == iadd);
-                        if (tank != null)
+                        if (tank != null && tank.Enable)
                         {
-                            string write = $"{add}=0={(int)(tank.Temperature * 10)}={(tank.ProductHeight*10):f}={tank.WaterHeight:f}=0\r\n";
+                            string write = $"{add}=0={(int)(tank.Temperature * 10)}={(tank.ProductHeight * 10):f}={tank.WaterHeight:f}=0\r\n";
                             var bytes = Encoding.ASCII.GetBytes(write).Select(b => (int)b);
                             foreach (var b in bytes)
                             {
