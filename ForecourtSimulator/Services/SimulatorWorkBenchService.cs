@@ -21,7 +21,8 @@ namespace ForecourtSimulator.Services
             Port = new IOPort(this);
             PumpSimulators = new Dictionary<string, PumpSimulator>
             {
-                ["GO"] = new GOPumpSimulator(Port.PumpPort, this),
+                ["GODirect"] = new GOPumpSimulator(Port.PumpPort, this, GoPumpMode.DirectPulser),
+                ["GOSerial"] = new GOPumpSimulator(Port.PumpPort, this, GoPumpMode.SerialPulser),
                 ["TOKHEIM"] = new TokheimPumpSimulator(Port.PumpPort, this, 2)
             };
             TankSimulator = new StartItalianaATGSimulator(Port.TankPort, this, 2);

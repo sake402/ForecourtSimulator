@@ -6,6 +6,7 @@ public abstract class PumpSimulator
     public IPumpStorage PumpStore { get; }
     public Pump[] Pumps { get; }
     public bool[] AutoSell { get; }
+    public int AutoSellPausePeriod { get; set; } = 5000;
     int[] pumpToggleNozzleTime;
     protected PumpSimulator(ISerialPortInterface serialPort, IPumpStorage pumpStore, int nPumps)
     {
@@ -214,7 +215,7 @@ public abstract class PumpSimulator
                         Pumps[i].StateChanged();
                         if (Pumps[i].Status != PumpStatus.NozzleUp)
                         {
-                            pumpToggleNozzleTime[i] = 2000; //keep nozzle down for 2s
+                            pumpToggleNozzleTime[i] = AutoSellPausePeriod;
                         }
                         else
                         {

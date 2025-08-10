@@ -23,14 +23,20 @@
     <select class="mgl bd pd-2" @bind-value="Service.State.BaudRate"
             @bind-value:after="ServiceSaveState"
             @bind-value:event="onchange">
-        @{
-            int baud = 300;
-        }
-        @while (baud < 1000000)
-        {
-            <option value="@baud">@baud</option>
-            baud *= 2;
-        }
+        <option value="300">300</option>
+        <option value="600">600</option>
+        <option value="1200">1200</option>
+        <option value="2400">2400</option>
+        <option value="4800">4800</option>
+        <option value="9600">9600</option>
+        <option value="19200">19200</option>
+        <option value="38400">38400</option>
+        <option value="76800">76800</option>
+        <option value="115200">115200</option>
+        <option value="153600">153600</option>
+        <option value="307200">307200</option>
+        <option value="460800">460800</option>
+        <option value="614400">614400</option>
     </select>
     <button class="bg-primary mgl pd-2" @onclick="Service.Port.ToggleConnect">@(Service.Port.IsConnected ? "Disconnect" : "Connect")</button>
     <div class="fill"></div>

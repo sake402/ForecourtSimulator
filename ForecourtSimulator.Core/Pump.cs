@@ -20,6 +20,8 @@ public class Pump
     public double PresetAmount { get; set; }
     public double VolumeSold { get; set; }
     public double AmountSold { get; set; }
+    public double CurrentVolumeSold { get; set; }
+    public double CurrentAmountSold { get; set; }
     public double TotalVolumeSold { get; set; }
     public double TotalAmountSold { get; set; }
     public Tank? ConnectedTank { get; set; }
@@ -46,6 +48,8 @@ public class Pump
         var totalAmountBefore = TotalAmountSold;
         TotalVolumeSold += VolumeSold;
         TotalAmountSold += AmountSold;
+        CurrentVolumeSold = 0;
+        CurrentAmountSold = 0;
         (double originalVolume, double newVolume) tankVolume = default;
         if (ConnectedTank != null)
             tankVolume = await ConnectedTank.DrawVolume(VolumeSold);
@@ -86,7 +90,9 @@ public class Pump
             {
                 Selling = true;
                 VolumeSold += 0.1;
+                CurrentVolumeSold = VolumeSold;
                 AmountSold = VolumeSold * PresetPrice;
+                CurrentAmountSold = AmountSold;
                 if (PresetVolume > 0 && VolumeSold >= PresetVolume - 0.01)
                 {
                     VolumeSold = PresetVolume;
